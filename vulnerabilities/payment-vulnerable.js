@@ -32,23 +32,18 @@ async function getUserByEmail_FIXED(email) {
 // VULN-002: Hardcoded Secrets (CVE-2024-SEC-012)
 // Concert Secure Coder fix: IBM Vault lookup
 // ────────────────────────────────────────────────
-const CONFIG_VULNERABLE = {
-  // ❌ VULNERABLE — hardcoded credentials in source (placeholders; never use real secrets here)
-  stripeApiKey: '<REPLACE_WITH_ENV_OR_VAULT>',
-  dbPassword:   '<REPLACE_WITH_ENV_OR_VAULT>',
-  jwtSecret:    '<REPLACE_WITH_ENV_OR_VAULT>',
-};
-
+// ✅ FIXED by Concert Secure Coder — secrets resolved from environment variables
+// or IBM Vault; no credential literals in source (CWE-798 remediated).
 const CONFIG_FIXED = {
-  // ✅ FIXED by Concert Secure Coder — secrets from IBM Vault
   stripeApiKey: process.env.STRIPE_API_KEY  || loadFromVault('secret/payment/api', 'stripe_api_key'),
   dbPassword:   process.env.DB_PASSWORD     || loadFromVault('secret/payment/db', 'password'),
   jwtSecret:    process.env.JWT_SECRET      || loadFromVault('secret/payment/jwt', 'secret'),
 };
 
 function loadFromVault(path, key) {
-  // Vault client at 192.168.3.7:8200
-  return `vault://${path}#${key}`;
+  // Vault address resolved from VAULT_ADDR environment variable (CWE-200 remediated)
+  const vaultAddr = process.env.VAULT_ADDR || 'http://vault:8200';
+  return `${vaultAddr}/v1/${path}#${key}`;
 }
 
 // ────────────────────────────────────────────────

@@ -18,9 +18,14 @@ const crypto     = require('crypto');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-// IBM Vault configuration
-const VAULT_ADDR  = process.env.VAULT_ADDR  || 'http://192.168.3.7:8200';
-const VAULT_TOKEN = process.env.VAULT_TOKEN || 'demo-root-token';
+// IBM Vault configuration — resolved from environment variables only (CWE-798 remediated)
+const VAULT_ADDR  = process.env.VAULT_ADDR  || 'http://vault:8200';
+const VAULT_TOKEN = process.env.VAULT_TOKEN || (() => {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('VAULT_TOKEN environment variable is required in production');
+  }
+  return undefined; // demo/dev: Vault calls will fail gracefully if token absent
+})();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
