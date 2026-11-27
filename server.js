@@ -10,6 +10,7 @@
 'use strict';
 
 const express    = require('express');
+const helmet     = require('helmet');
 const path       = require('path');
 const https      = require('https');
 const http       = require('http');
@@ -20,12 +21,31 @@ const PORT = process.env.PORT || 3000;
 
 // IBM Vault configuration — resolved from environment variables only (CWE-798 remediated)
 const VAULT_ADDR  = process.env.VAULT_ADDR  || 'http://vault:8200';
+if (process.env.NODE_ENV === 'production' && VAULT_ADDR.startsWith('http:')) {
+  console.warn('[SECURITY] VAULT_ADDR is using non-TLS HTTP in production — CWE-319 risk. Set VAULT_ADDR to an https:// endpoint.');
+}
 const VAULT_TOKEN = process.env.VAULT_TOKEN || (() => {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('VAULT_TOKEN environment variable is required in production');
   }
   return undefined; // demo/dev: Vault calls will fail gracefully if token absent
 })();
+
+// Security headers — helmet with CSP configured for Google Fonts CDN (CWE-693 remediated)
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc:  ["'self'"],
+      scriptSrc:   ["'self'", "'unsafe-inline'"],
+      styleSrc:    ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc:     ["'self'", 'https://fonts.gstatic.com'],
+      imgSrc:      ["'self'", 'data:'],
+      connectSrc:  ["'self'"],
+      frameSrc:    ["'none'"],
+      objectSrc:   ["'none'"],
+    },
+  },
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
