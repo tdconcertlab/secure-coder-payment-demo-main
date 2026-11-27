@@ -155,13 +155,19 @@ function logRemediation(type, title, msg, cve) {
   const entry = document.createElement('div');
   entry.className = `rlog-entry ${type}`;
   const typeLabels = { fix: 'Fixed', warn: 'Warning', info: 'Info', action: 'Action' };
+  // escHtml() applied to all interpolated values — CWE-79 remediated
+  const safeLabel = escHtml(typeLabels[type] || type);
+  const safeTs    = escHtml(new Date().toLocaleTimeString());
+  const safeTitle = escHtml(title);
+  const safeMsg   = escHtml(msg);
+  const safeCve   = escHtml(cve);
   entry.innerHTML = `
     <div class="rlog-entry-header">
-      <span class="rlog-entry-type">${typeLabels[type] || type}</span>
-      <span class="rlog-entry-ts">${new Date().toLocaleTimeString()}</span>
+      <span class="rlog-entry-type">${safeLabel}</span>
+      <span class="rlog-entry-ts">${safeTs}</span>
     </div>
-    <div class="rlog-entry-msg"><strong>${title}</strong> — ${msg}</div>
-    ${cve ? `<div class="rlog-entry-cve">${cve}</div>` : ''}
+    <div class="rlog-entry-msg"><strong>${safeTitle}</strong> — ${safeMsg}</div>
+    ${cve ? `<div class="rlog-entry-cve">${safeCve}</div>` : ''}
   `;
   log.prepend(entry);
 }
