@@ -33,10 +33,10 @@ async function getUserByEmail_FIXED(email) {
 // Concert Secure Coder fix: IBM Vault lookup
 // ────────────────────────────────────────────────
 const CONFIG_VULNERABLE = {
-  // ❌ VULNERABLE — hardcoded credentials in source
-  stripeApiKey: 'sk_live_4xK9mFnQ8pRsT2wX7vY3zN1',
-  dbPassword:   'P@ssw0rd123!',
-  jwtSecret:    'super-secret-key-do-not-share',
+  // ❌ VULNERABLE — hardcoded credentials in source (placeholders; never use real secrets here)
+  stripeApiKey: '<REPLACE_WITH_ENV_OR_VAULT>',
+  dbPassword:   '<REPLACE_WITH_ENV_OR_VAULT>',
+  jwtSecret:    '<REPLACE_WITH_ENV_OR_VAULT>',
 };
 
 const CONFIG_FIXED = {
