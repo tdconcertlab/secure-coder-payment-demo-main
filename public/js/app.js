@@ -5,6 +5,16 @@
 
 'use strict';
 
+// Escape helper — prevents XSS when inserting untrusted strings into innerHTML (CWE-79 remediated)
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // ── Particles ──────────────────────────────────────────────
 (function initParticles() {
   const container = document.getElementById('particles');
@@ -82,8 +92,8 @@ async function processPayment(evt) {
 
     if (resp.ok && data.success) {
       result.className = 'payment-result success';
-      result.innerHTML = `✅ Payment of <strong>$${payload.amount}</strong> processed successfully!<br>
-        <small>Transaction ID: ${data.txId} | Vault-secured API key used</small>`;
+      result.innerHTML = `✅ Payment of <strong>$${escHtml(payload.amount)}</strong> processed successfully!<br>
+        <small>Transaction ID: ${escHtml(data.txId)} | Vault-secured API key used</small>`;
       addAuditEntry('ok', '✅', `Payment SUCCESS — TxID: ${data.txId}`);
       showToast('Payment processed securely!', 'success');
       logRemediation('info', 'Payment completed', 'Transaction signed with Vault-issued ephemeral key', '');
@@ -94,8 +104,8 @@ async function processPayment(evt) {
     // Demo mode: simulate success when server is not running
     const txId = 'TX-' + Math.random().toString(36).substring(2, 10).toUpperCase();
     result.className = 'payment-result success';
-    result.innerHTML = `✅ <strong>Demo Mode</strong>: Payment of <strong>$${payload.amount}</strong> simulated!<br>
-      <small>Transaction ID: ${txId} | IBM Vault secret rotation demonstrated</small>`;
+    result.innerHTML = `✅ <strong>Demo Mode</strong>: Payment of <strong>$${escHtml(payload.amount)}</strong> simulated!<br>
+      <small>Transaction ID: ${escHtml(txId)} | IBM Vault secret rotation demonstrated</small>`;
     addAuditEntry('ok', '✅', `Demo Payment SUCCESS — TxID: ${txId}`);
     addAuditEntry('warn', '🔓', `VULN DEMO: CVV stored in session storage — PCI DSS §3.2 violation`);
     showToast('Demo payment processed!', 'success');
@@ -124,9 +134,9 @@ function renderAuditLog() {
   }
   log.innerHTML = auditEntries.slice(0, 50).map(e => `
     <div class="audit-entry">
-      <span class="audit-ts">${e.ts.toLocaleTimeString()}</span>
+      <span class="audit-ts">${escHtml(e.ts.toLocaleTimeString())}</span>
       <span class="audit-icon">${e.icon}</span>
-      <span class="audit-msg ${e.type}">${e.msg}</span>
+      <span class="audit-msg ${escHtml(e.type)}">${escHtml(e.msg)}</span>
     </div>
   `).join('');
 }

@@ -1,11 +1,19 @@
 /* ============================================================
-   vault.js — IBM Vault integration (192.168.3.7)
+   vault.js — IBM Vault integration
    IBM Concert Secure Coder Demo
    ============================================================ */
 
 'use strict';
 
-const VAULT_ADDR = 'http://192.168.3.7:8200';
+// Vault address resolved from server API — no internal IP hardcoded in client JS (CWE-200 remediated)
+let VAULT_ADDR = '/api/vault'; // resolved dynamically from /api/vault/health response
+
+// Escape helper for safe innerHTML insertion (CWE-116 remediated)
+function escVault(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 
 // Demo secrets to display when vault is unreachable
 const DEMO_SECRETS = [
@@ -60,8 +68,11 @@ async function checkVaultStatus() {
     if (data.initialized && !data.sealed) {
       if (dot)   { dot.className = 'dot dot-online'; }
       if (label) { label.textContent = 'IBM Vault — Online'; }
-      addAuditEntry('ok', '🔐', 'IBM Vault connected at 192.168.3.7:8200');
-      logRemediation('info', 'Vault Connected', 'IBM Vault at 192.168.3.7:8200 is healthy and unsealed', '');
+      const endpoint = data.endpoint || '';
+      const epEl = document.getElementById('vaultEndpointUrl');
+      if (epEl && endpoint) epEl.textContent = endpoint;
+      addAuditEntry('ok', '🔐', 'IBM Vault connected');
+      logRemediation('info', 'Vault Connected', 'IBM Vault is healthy and unsealed', '');
     } else {
       throw new Error('Vault sealed or uninitialized');
     }
@@ -101,7 +112,7 @@ async function loadVaultSecrets() {
   const vaultHealth = document.getElementById('vaultHealth');
   if (!grid) return;
 
-  grid.innerHTML = `<div class="secret-loading"><div class="spinner"></div><p>Connecting to IBM Vault at ${VAULT_ADDR}…</p></div>`;
+  grid.innerHTML = `<div class="secret-loading"><div class="spinner"></div><p>Connecting to IBM Vault…</p></div>`;
 
   // Try real vault first
   let secrets = null;
@@ -128,22 +139,22 @@ async function loadVaultSecrets() {
   }
 
   grid.innerHTML = displaySecrets.map((s, i) => `
-    <div class="secret-card">
-      <div class="secret-path">${s.path}</div>
-      <div class="secret-key">${s.icon} ${s.key}</div>
+    <div class="secret-card" data-secret-val="${escVault(s.value)}">
+      <div class="secret-path">${escVault(s.path)}</div>
+      <div class="secret-key">${escVault(s.icon)} ${escVault(s.key)}</div>
       <div class="secret-val masked" id="secval-${i}">${maskSecret(s.value)}</div>
       <div class="secret-meta">
-        ${s.lease}
+        ${escVault(s.lease)}
         ${isDemoMode ? '&nbsp;·&nbsp;<em>demo</em>' : ''}
-        <button class="secret-toggle" onclick="toggleSecret(${i}, '${s.value}')">👁 Reveal</button>
+        <button class="secret-toggle" onclick="toggleSecret(${i})">👁 Reveal</button>
       </div>
     </div>
   `).join('');
 
   if (isDemoMode) {
-    addAuditEntry('info', '🔐', `Vault demo secrets loaded — ${VAULT_ADDR}`);
+    addAuditEntry('info', '🔐', 'Vault demo secrets loaded');
   } else {
-    addAuditEntry('ok', '🔐', `Vault live secrets fetched from ${VAULT_ADDR}`);
+    addAuditEntry('ok', '🔐', 'Vault live secrets fetched');
   }
 
   // Update payment form chips
@@ -155,15 +166,18 @@ function maskSecret(val) {
   return val.substring(0, 4) + '•'.repeat(Math.min(12, val.length - 6)) + val.slice(-2);
 }
 
-function toggleSecret(idx, val) {
-  const el  = document.getElementById(`secval-${idx}`);
-  const btn = el ? el.closest('.secret-card').querySelector('.secret-toggle') : null;
-  if (!el) return;
+function toggleSecret(idx) {
+  const el   = document.getElementById(`secval-${idx}`);
+  const card = el ? el.closest('.secret-card') : null;
+  const btn  = card ? card.querySelector('.secret-toggle') : null;
+  if (!el || !card) return;
+  // Secret value stored in data attribute — never injected into onclick attribute (CWE-116 remediated)
+  const val = card.dataset.secretVal || '';
   if (el.classList.contains('masked')) {
     el.classList.remove('masked');
     el.textContent = val;
     if (btn) btn.textContent = '🙈 Hide';
-    addAuditEntry('warn', '👁', `Secret revealed in UI — audit event recorded`);
+    addAuditEntry('warn', '👁', 'Secret revealed in UI — audit event recorded');
   } else {
     el.classList.add('masked');
     el.textContent = maskSecret(val);

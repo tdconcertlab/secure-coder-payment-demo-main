@@ -27,7 +27,7 @@
     <div class="nav-status">
       <div class="vault-indicator" id="vaultIndicator">
         <span class="dot dot-checking"></span>
-        <span class="vault-label">IBM Vault 192.168.3.7</span>
+        <span class="vault-label">IBM Vault</span>
       </div>
       <div class="scan-badge" id="scanBadge" onclick="openScanPanel()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -175,7 +175,7 @@
               </div>
               <div class="vault-endpoint">
                 <span class="endpoint-label">Endpoint</span>
-                <span class="endpoint-url">http://192.168.3.7:8200</span>
+                <span class="endpoint-url" id="vaultEndpointUrl">Fetching…</span>
               </div>
               <div class="vault-health" id="vaultHealth">
                 <span class="dot dot-checking"></span> Checking...
@@ -184,7 +184,7 @@
             <div class="vault-secrets-grid" id="secretsGrid">
               <div class="secret-loading">
                 <div class="spinner"></div>
-                <p>Connecting to IBM Vault at 192.168.3.7...</p>
+                <p>Connecting to IBM Vault…</p>
               </div>
             </div>
             <div class="vault-actions">

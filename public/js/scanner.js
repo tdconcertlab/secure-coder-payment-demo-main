@@ -5,6 +5,13 @@
 
 'use strict';
 
+// Escape helper for safe innerHTML insertion (CWE-116 remediated)
+function escScan(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 // ── Finding database ────────────────────────────────────────
 const FINDINGS = [
   {
@@ -233,16 +240,16 @@ function renderFindings() {
   }
 
   list.innerHTML = scanState.findings.map(f => `
-    <div class="finding-item ${f.sev} ${scanState.fixed.has(f.id) ? 'fixed' : ''}" onclick="onFindingClick('${f.id}')">
-      <span class="finding-sev sev-${f.sev}">${f.sev}</span>
+    <div class="finding-item ${escScan(f.sev)} ${scanState.fixed.has(f.id) ? 'fixed' : ''}" onclick="onFindingClick('${escScan(f.id)}')">
+      <span class="finding-sev sev-${escScan(f.sev)}">${escScan(f.sev)}</span>
       <div class="finding-info">
-        <div class="finding-title">${scanState.fixed.has(f.id) ? '✅ ' : ''}${f.title}</div>
-        <div class="finding-file">${f.file}</div>
-        <div class="finding-fix">${f.fix}</div>
+        <div class="finding-title">${scanState.fixed.has(f.id) ? '✅ ' : ''}${escScan(f.title)}</div>
+        <div class="finding-file">${escScan(f.file)}</div>
+        <div class="finding-fix">${escScan(f.fix)}</div>
       </div>
       ${scanState.fixed.has(f.id)
         ? '<span class="finding-fixed-badge">FIXED</span>'
-        : `<button class="finding-fix-btn" style="background:none;border:none;color:var(--accent2);font-size:10px;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation();autoFix('${f.id}')">Fix</button>`
+        : `<button class="finding-fix-btn" style="background:none;border:none;color:var(--accent2);font-size:10px;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation();autoFix('${escScan(f.id)}')">Fix</button>`
       }
     </div>
   `).join('');
