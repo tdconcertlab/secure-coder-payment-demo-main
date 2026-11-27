@@ -80,7 +80,7 @@ async function checkVaultStatus() {
     // Demo mode
     if (dot)   { dot.className = 'dot dot-checking'; }
     if (label) { label.textContent = 'IBM Vault — Demo Mode'; }
-    addAuditEntry('warn', '⚠️', 'Vault at 192.168.3.7 unreachable — running in demo mode');
+    addAuditEntry('warn', '⚠️', 'Vault unreachable — running in demo mode');
     logRemediation('info', 'Demo Mode Active', 'IBM Vault demo secrets loaded (server offline)', '');
     loadDemoApiKeyChip();
   }
@@ -189,7 +189,7 @@ function toggleSecret(idx) {
 async function rotateSecrets() {
   showToast('🔄 Rotating Vault credentials…', 'info');
   addAuditEntry('warn', '🔄', 'Manual secret rotation triggered via Vault API');
-  logRemediation('action', 'Secret Rotation', 'IBM Vault rotating all dynamic credentials at 192.168.3.7', '');
+  logRemediation('action', 'Secret Rotation', 'IBM Vault rotating all dynamic credentials', '');
 
   await new Promise(r => setTimeout(r, 1500));
 

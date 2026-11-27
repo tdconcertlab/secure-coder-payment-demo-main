@@ -2,7 +2,7 @@
  * server.js — SecurePay backend
  * IBM Concert Secure Coder Demo
  *
- * Demonstrates IBM Vault integration at 192.168.3.7 for secret management.
+ * Demonstrates IBM Vault integration for secret management.
  * Intentionally contains some vulnerable patterns for the Secure Coder demo —
  * run `npm run scan` to detect and remediate them.
  */

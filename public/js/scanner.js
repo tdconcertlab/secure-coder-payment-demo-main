@@ -32,7 +32,7 @@ const FINDINGS = [
     cve:      'CVE-2024-SEC-012',
     fix:      'Migrate to IBM Vault secret path: secret/payment/api',
     fixType:  'vault',
-    remMsg:   'Concert Secure Coder replaced hardcoded key with IBM Vault lookup at 192.168.3.7',
+    remMsg:   'Concert Secure Coder replaced hardcoded key with IBM Vault lookup',
   },
   {
     id:       'FIND-003',
@@ -165,7 +165,7 @@ async function runScan() {
     { icon: '📦', text: 'Scanning npm dependencies (icsc_scan_packages)…', delay: 600 },
     { icon: '🔍', text: 'Scanning source code for SAST findings (icsc_scan_code)…', delay: 900 },
     { icon: '🔑', text: 'Scanning for hardcoded secrets (icsc_scan_secrets)…', delay: 700 },
-    { icon: '🏦', text: 'Checking Vault configuration at 192.168.3.7…', delay: 800 },
+    { icon: '🏦', text: 'Checking Vault configuration…', delay: 800 },
     { icon: '📋', text: 'Building CVE report…', delay: 500 },
   ];
 
@@ -327,11 +327,12 @@ let scanOverlaySteps = [];
 function renderScanProgress(steps) {
   const area = document.getElementById('scanProgressArea');
   if (!area) return;
+  // escScan() applied to all interpolated values — CWE-116 remediated
   area.innerHTML = steps.map(s => `
     <div class="scan-step">
-      <span class="step-icon">${s.icon}</span>
-      <span class="step-text">${s.text}</span>
-      <span class="step-status status-${s.status}">${s.status}</span>
+      <span class="step-icon">${escScan(s.icon)}</span>
+      <span class="step-text">${escScan(s.text)}</span>
+      <span class="step-status status-${escScan(s.status)}">${escScan(s.status)}</span>
     </div>
   `).join('');
 }
@@ -364,18 +365,19 @@ function addFinalScanSummary(total, crit, high, med, low) {
   if (!area) return;
   const summary = document.createElement('div');
   summary.style.cssText = 'margin-top:16px; padding:14px; background:rgba(255,23,68,0.05); border:1px solid rgba(255,23,68,0.2); border-radius:10px;';
+  // escScan() applied to numeric counter interpolations — CWE-116 defence-in-depth
   summary.innerHTML = `
     <div style="font-size:15px;font-weight:700;margin-bottom:8px;">📊 Scan Summary</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center">
-      <div style="color:var(--critical)"><div style="font-size:24px;font-weight:800">${crit}</div><div style="font-size:10px">Critical</div></div>
-      <div style="color:var(--high)"><div style="font-size:24px;font-weight:800">${high}</div><div style="font-size:10px">High</div></div>
-      <div style="color:var(--medium)"><div style="font-size:24px;font-weight:800">${med}</div><div style="font-size:10px">Medium</div></div>
-      <div style="color:var(--low)"><div style="font-size:24px;font-weight:800">${low}</div><div style="font-size:10px">Low</div></div>
+      <div style="color:var(--critical)"><div style="font-size:24px;font-weight:800">${escScan(crit)}</div><div style="font-size:10px">Critical</div></div>
+      <div style="color:var(--high)"><div style="font-size:24px;font-weight:800">${escScan(high)}</div><div style="font-size:10px">High</div></div>
+      <div style="color:var(--medium)"><div style="font-size:24px;font-weight:800">${escScan(med)}</div><div style="font-size:10px">Medium</div></div>
+      <div style="color:var(--low)"><div style="font-size:24px;font-weight:800">${escScan(low)}</div><div style="font-size:10px">Low</div></div>
     </div>
     <div style="margin-top:12px;text-align:center">
       <button onclick="remediateAll(); closeScanPanel();"
         style="padding:10px 24px;background:linear-gradient(135deg,#24a148,#42be65);border:none;border-radius:8px;color:white;font-size:13px;font-weight:700;cursor:pointer;">
-        🛡️ Auto-Remediate All ${total} Findings
+        🛡️ Auto-Remediate All ${escScan(total)} Findings
       </button>
     </div>
   `;
